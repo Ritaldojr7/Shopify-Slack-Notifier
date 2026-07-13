@@ -15,6 +15,8 @@ async function processJob(job) {
     return;
   }
 
+  console.log(JSON.stringify(product, null, 2));
+
   const { id, title } = product;
 
   if (topic === "create") {
