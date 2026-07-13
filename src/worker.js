@@ -1,6 +1,6 @@
 import { pathToFileURL } from "url";
 import { boss, initBoss, QUEUE_NAME } from "./boss.js";
-import { getTitle, logTitleChange, setTitle } from "./store.js";
+import { getTitle, setTitle, logTitleChange } from "./store.js";
 import { postProductCreated, postTitleChanged } from "./slack.js";
 
 /** Process a single queued product event. */
@@ -38,9 +38,20 @@ async function processJob(job) {
       return;
     }
 
-    await postTitleChanged(product, storedTitle, title);
-    await logTitleChange(id, storedTitle, title);
-    await setTitle(id, title);
+    const oldTitle = storedTitle;
+    const newTitle = title;
+
+    try {
+      await logTitleChange(id, oldTitle, newTitle);
+    } catch (err) {
+      console.error(
+        `Failed to log title change for product ${id}:`,
+        err
+      );
+    }
+
+    await postTitleChanged(product, oldTitle, newTitle);
+    await setTitle(id, newTitle);
   }
 }
 
