@@ -7,7 +7,6 @@ export const QUEUE_NAME = "product-events";
 export const boss = new PgBoss({
   connectionString: DATABASE_URL,
   ssl: pgSsl,
-  schema: "public",
 });
 
 let initialized = false;
