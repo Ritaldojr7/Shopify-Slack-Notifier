@@ -131,3 +131,46 @@ GET /health
 ```
 
 Returns `ok` when the server is running.
+
+## CI/CD
+
+Deployments are handled by GitHub Actions only — Render auto-deploy is disabled.
+
+### Pipeline
+
+| Trigger | CI | Deploy |
+|---|---|---|
+| Pull request to `main` | Syntax check + `npm ci` | — |
+| Push to `feature/**` | Syntax check + `npm ci` | — |
+| Push to `main` | Syntax check + `npm ci` | Render deploy hook |
+
+Workflow file: `.github/workflows/ci-cd.yml`
+
+### One-time setup
+
+1. **Disable Render auto-deploy** (if not already off via `render.yaml`):
+   - Render Dashboard → your service → **Settings** → **Build & Deploy** → set **Auto-Deploy** to **Off**
+
+2. **Create a Render deploy hook**:
+   - Render Dashboard → your service → **Settings** → **Deploy Hook** → copy the URL
+
+3. **Add the GitHub secret**:
+   - GitHub repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+   - Name: `RENDER_DEPLOY_HOOK_URL`
+   - Value: your deploy hook URL
+
+4. **(Optional) Protect `main`**:
+   - GitHub repo → **Settings** → **Branches** → require the **CI** check to pass before merging
+
+### Deploy flow
+
+1. Open a PR → CI runs automatically
+2. Merge to `main` → CI runs, then the deploy job POSTs to the Render hook with `ref=<commit-sha>`
+3. Render builds and deploys that exact commit
+
+Local check before pushing:
+
+```bash
+npm ci
+npm run check
+```
