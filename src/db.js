@@ -26,4 +26,9 @@ export async function migrate() {
       changed_at  timestamptz NOT NULL DEFAULT now()
     )
   `);
+
+  await pool.query(`
+    ALTER TABLE product_titles
+    ADD COLUMN IF NOT EXISTS source_updated_at timestamptz
+  `);
 }
