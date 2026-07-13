@@ -23,6 +23,14 @@ function productAdminUrl(productId) {
   return `https://${SHOP}.myshopify.com/admin/products/${productId}`;
 }
 
+function istTime(iso) {
+  return new Date(iso || Date.now()).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit", hour12: true
+  }) + " IST";
+}
+
 /** Post a "New Product Created" notification. */
 export async function postProductCreated(product) {
   const { id, title, handle } = product;
@@ -41,6 +49,7 @@ export async function postProductCreated(product) {
               `*New Product Created*`,
               `*Title:* ${title}`,
               `*Slug:* ${handle}`,
+              `Time: ${istTime(product.created_at)}`,
               `<${adminUrl}|View Product>`,
             ].join("\n"),
           },
@@ -70,6 +79,7 @@ export async function postTitleChanged(product, oldTitle, newTitle) {
               `*Product Title Updated*`,
               `*Title:* ${oldTitle} → ${newTitle}`,
               `*Slug:* ${handle}`,
+              `Time: ${istTime(product.updated_at)}`,
               `<${adminUrl}|View Product>`,
             ].join("\n"),
           },
