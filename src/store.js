@@ -1,22 +1,33 @@
 import { pool } from "./db.js";
 
-/** Return the stored title for a product, or null if none exists. */
+/**
+ * Return the stored title row for a product, or null if none exists.
+ * @returns {{ title: string, sourceUpdatedAt: Date | null } | null}
+ */
 export async function getTitle(productId) {
   const { rows } = await pool.query(
-    "SELECT title FROM product_titles WHERE product_id = $1",
+    "SELECT title, source_updated_at FROM product_titles WHERE product_id = $1",
     [String(productId)]
   );
-  return rows[0]?.title ?? null;
+
+  if (!rows[0]) return null;
+
+  return {
+    title: rows[0].title,
+    sourceUpdatedAt: rows[0].source_updated_at,
+  };
 }
 
-/** Insert or update the stored title for a product. */
-export async function setTitle(productId, title) {
+/** Insert or update the stored title and source_updated_at for a product. */
+export async function setTitle(productId, title, sourceUpdatedAt = null) {
   await pool.query(
-    `INSERT INTO product_titles (product_id, title)
-     VALUES ($1, $2)
+    `INSERT INTO product_titles (product_id, title, source_updated_at)
+     VALUES ($1, $2, $3)
      ON CONFLICT (product_id)
-     DO UPDATE SET title = EXCLUDED.title, updated_at = now()`,
-    [String(productId), title]
+     DO UPDATE SET title = EXCLUDED.title,
+                   source_updated_at = EXCLUDED.source_updated_at,
+                   updated_at = now()`,
+    [String(productId), title, sourceUpdatedAt]
   );
 }
 

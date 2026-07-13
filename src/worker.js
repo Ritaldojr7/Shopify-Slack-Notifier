@@ -17,30 +17,40 @@ async function processJob(job) {
 
   console.log(JSON.stringify(product, null, 2));
 
-  const { id, title } = product;
+  const { id, title, updated_at: updatedAt } = product;
 
   if (topic === "create") {
-    await setTitle(id, title);
+    await setTitle(id, title, updatedAt);
     await postProductCreated(product);
     return;
   }
 
   if (topic === "update") {
-    const storedTitle = await getTitle(id);
+    const stored = await getTitle(id);
 
     // No baseline yet — record silently and skip notification.
-    if (storedTitle === null) {
-      await setTitle(id, title);
+    if (stored === null) {
+      await setTitle(id, title, updatedAt);
       console.log(`Baseline title stored for product ${id}: "${title}"`);
       return;
     }
 
+    // Stale or out-of-order delivery — skip entirely.
+    if (stored.sourceUpdatedAt && updatedAt) {
+      if (new Date(stored.sourceUpdatedAt) >= new Date(updatedAt)) {
+        console.log(
+          `Skipping stale/out-of-order update for product ${id}`
+        );
+        return;
+      }
+    }
+
     // Title unchanged — no-op.
-    if (storedTitle === title) {
+    if (stored.title === title) {
       return;
     }
 
-    const oldTitle = storedTitle;
+    const oldTitle = stored.title;
     const newTitle = title;
 
     try {
@@ -53,7 +63,7 @@ async function processJob(job) {
     }
 
     await postTitleChanged(product, oldTitle, newTitle);
-    await setTitle(id, newTitle);
+    await setTitle(id, newTitle, updatedAt);
   }
 }
 
