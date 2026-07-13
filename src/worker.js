@@ -1,6 +1,6 @@
 import { pathToFileURL } from "url";
 import { boss, initBoss, QUEUE_NAME } from "./boss.js";
-import { getTitle, setTitle } from "./store.js";
+import { getTitle, logTitleChange, setTitle } from "./store.js";
 import { postProductCreated, postTitleChanged } from "./slack.js";
 
 /** Process a single queued product event. */
@@ -39,6 +39,7 @@ async function processJob(job) {
     }
 
     await postTitleChanged(product, storedTitle, title);
+    await logTitleChange(id, storedTitle, title);
     await setTitle(id, title);
   }
 }

@@ -19,3 +19,12 @@ export async function setTitle(productId, title) {
     [String(productId), title]
   );
 }
+
+/** Record a title change in the audit log. */
+export async function logTitleChange(productId, oldTitle, newTitle) {
+  await pool.query(
+    `INSERT INTO title_changes (product_id, old_title, new_title)
+     VALUES ($1, $2, $3)`,
+    [String(productId), oldTitle, newTitle]
+  );
+}

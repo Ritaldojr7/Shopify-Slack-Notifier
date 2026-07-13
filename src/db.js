@@ -7,13 +7,23 @@ export const pool = new pg.Pool({
   max: 5,
 });
 
-/** Create the product_titles table if it does not exist. */
+/** Create application tables if they do not exist. */
 export async function migrate() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS product_titles (
       product_id text PRIMARY KEY,
       title text NOT NULL,
       updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS title_changes (
+      id          bigserial PRIMARY KEY,
+      product_id  text NOT NULL,
+      old_title   text NOT NULL,
+      new_title   text NOT NULL,
+      changed_at  timestamptz NOT NULL DEFAULT now()
     )
   `);
 }
