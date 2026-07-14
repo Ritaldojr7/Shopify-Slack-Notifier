@@ -5,18 +5,19 @@ on:
     branches:
       - main
       - "feature/**"
+      - "fix/**"
+      - "chore/**"
   pull_request:
-    branches:
-      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  ci:
-    name: CI
+  ci-cd:
+    name: CI/CD
     runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'production' || 'ci' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,14 +34,8 @@ jobs:
       - name: Syntax check
         run: npm run check
 
-  deploy:
-    name: Deploy to Render
-    needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Trigger Render deploy hook
+      - name: Deploy to Render
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           GITHUB_SHA: ${{ github.sha }}

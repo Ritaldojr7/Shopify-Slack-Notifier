@@ -140,11 +140,13 @@ Deployments are handled by GitHub Actions only — Render auto-deploy is disable
 
 | Trigger | CI | Deploy |
 |---|---|---|
-| Pull request to `main` | Syntax check + `npm ci` | — |
-| Push to `feature/**` | Syntax check + `npm ci` | — |
+| Any pull request | Syntax check + `npm ci` | — |
+| Push to `feature/**`, `fix/**`, or `chore/**` | Syntax check + `npm ci` | — |
 | Push to `main` | Syntax check + `npm ci` | Render deploy hook |
 
 Workflow file: `.github/workflows/ci-cd.yml`
+
+Uses a single job so checks and deploy share one runner on `main` (saves Actions minutes). Render builds with `npm ci` to match CI.
 
 ### One-time setup
 
@@ -165,7 +167,7 @@ Workflow file: `.github/workflows/ci-cd.yml`
 ### Deploy flow
 
 1. Open a PR → CI runs automatically
-2. Merge to `main` → CI runs, then the deploy job POSTs to the Render hook with `ref=<commit-sha>`
+2. Merge to `main` → CI runs, then the workflow POSTs to the Render hook with `ref=<commit-sha>`
 3. Render builds and deploys that exact commit
 
 Local check before pushing:
